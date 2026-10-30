@@ -1,19 +1,21 @@
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vpro-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
+
 spec:
   ingressClassName: nginx
   rules:
     - host: vprofile.dnyanesh.xyz
       http:
-        paths: 
-          path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: vproapp-service
-              port:
-                number: 8080
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vproapp-service
+                port:
+                  number: 8080
