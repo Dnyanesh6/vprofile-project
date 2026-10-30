@@ -1,8 +1,8 @@
-piVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vpro-ingress
-  aannotations:
+  annotations:
     kubernetes.io/ingress.class: nginx
 spec:
   ingressClassName: nginx
