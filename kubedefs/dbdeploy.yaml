@@ -1,43 +1,53 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vprodb
   labels:
     app: vprodb
+
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: vprodb
+
   template:
     metadata:
       labels:
         app: vprodb
-      spec:
-        containers:
+
+    spec:
+      containers:
         - name: vprodb
           image: dnyaneshchaudhari/vprodb:latest
+
+          ports:
+            - name: vprodb-port
+              containerPort: 3306
+
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vpro-secret
+                  key: db-pass
+
           volumeMounts:
             - name: vprodb-db-data
               mountPath: /var/lib/mysql
-        ports:
-        - name: vprodb-port
-          containerPort: 3306
-        env:
-          - name: MYSQL_ROT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: vpro-secret
-                key: db-pass
-        volumes:
-          - name: vprodb-db-data
-            persistentVolumeClaim:
-              claimName: db-pv-claim
 
-        initContainers: #this allows to remove the lost+found directory from the volume before starting the main container
-          - name: busybox
-            image: busybox:latest
-            args: ["rm", "-rf", "/var/lib/mysql/lost+found"]
-            volumeMounts:
-              - name: vprodb-db-data
-                mountPath: /var/lib/mysql
+      volumes:
+        - name: vprodb-db-data
+          persistentVolumeClaim:
+            claimName: db-pv-claim
+
+      initContainers:
+        - name: busybox
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - rm -rf /var/lib/mysql/lost+found
+          volumeMounts:
+            - name: vprodb-db-data
+              mountPath: /var/lib/mysql

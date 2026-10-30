@@ -1,32 +1,48 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vproapp
   labels:
     app: vproapp
+
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: vproapp
+
   template:
     metadata:
       labels:
         app: vproapp
-      spec:
-        containers:
+
+    spec:
+      initContainers:
+        - name: init-mydb
+          image: busybox:latest
+          args:
+            - sh
+            - -c
+            - until nslookup vprodb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vprodb; sleep 2; done
+
+        - name: init-memcache
+          image: busybox:latest
+          args:
+            - sh
+            - -c
+            - until nslookup vprocache01.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vprocache01; sleep 2; done
+
+        - name: init-rabbitmq
+          image: busybox:latest
+          args:
+            - sh
+            - -c
+            - until nslookup vpromq01.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vpromq01; sleep 2; done
+
+      containers:
         - name: vproapp
           image: dnyaneshchaudhari/vprofileapp
-        ports:
-        - name: vproapp-port
-          containerPort: 8080
-        initContainers: #this allows to remove the lost+found directory from the volume before starting the main container
-          - name: init-mydb
-            image: busybox:latest
-            args: ["sh", "-c", "until nslookup vprodb.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vprodb; sleep 2; done"]
-          - name: init-memcache
-            image: busybox:latest
-            args: ["sh", "-c", "until nslookup vprocache01.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vpromemcache; sleep 2; done"]
-          - name: init-rabbitmq
-            image: busybox:latest
-            args: ["sh", "-c", "until nslookup vpromq01.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for vpromemcache; sleep 2; done"]
+          ports:
+            - name: vproapp-port
+              containerPort: 8080
