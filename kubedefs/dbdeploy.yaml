@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: vprodb
-          image: dnyaneshchaudhari/vprodb
+          image: dnyaneshchaudhari/vprofiledb
 
           ports:
             - name: vprodb-port
